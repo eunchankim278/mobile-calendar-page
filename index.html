@@ -99,6 +99,17 @@
         .days-of-week div { /* Re-apply text-align:center for headers */
             text-align: center;
         }
+
+        /* Style for Sundays (Red) */
+        .calendar-grid div:nth-child(7n + 2):not(.empty-day):not(.spacer) { /* Sundays */
+            color: red;
+            font-weight: bold;
+        }
+        /* Style for Saturdays (Blue) */
+        .calendar-grid div:nth-child(7n + 8):not(.empty-day):not(.spacer) { /* Saturdays */
+            color: blue;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +133,7 @@
             <!-- Static representation of March 2026 calendar (starts on Sunday) -->
             <!-- March 1st, 2026 is a Sunday -->
             <!-- Days 1-31. March 31st is a Tuesday. Needs 4 empty cells at the end. -->
+            <div class="spacer" style="grid-column: start;"></div> <!-- Spacer for alignment -->
             <div>1</div>
             <div>2</div>
             <div>3</div>
