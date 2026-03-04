@@ -119,6 +119,7 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       position: relative;
+      overflow: visible;
     }
     .day-cell.other-month { color: var(--text-dim); opacity: 0.6; }
     .day-cell.today {
@@ -126,6 +127,22 @@
       color: var(--accent);
       font-weight: 700;
     }
+    .day-cell.sunday:not(.selected) { color: var(--red); }
+    .day-cell.holiday:not(.selected) { color: var(--red); font-weight: 700; }
+    .day-cell.other-month.sunday:not(.selected),
+    .day-cell.other-month.holiday:not(.selected) { color: rgba(247, 118, 142, 0.75); }
+    .holiday-label {
+      position: absolute;
+      bottom: 9px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      line-height: 1.1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .day-cell.holiday:not(.selected) .holiday-label { color: var(--red); }
+    .day-cell.selected .holiday-label { color: var(--bg); }
     .day-cell.selected {
       background: var(--accent);
       color: var(--bg);
@@ -133,7 +150,7 @@
     .day-cell:active { opacity: 0.8; }
     .day-cell .dot {
       position: absolute;
-      bottom: 4px;
+      bottom: 2px;
       width: 4px;
       height: 4px;
       border-radius: 50%;
@@ -310,6 +327,10 @@
   <script>
     (function() {
       const STORAGE_KEY = 'calendar-tasks';
+      const SEOUL_TZ = 'Asia/Seoul';
+      const holidayCache = Object.create(null); // { [year:number]: Set<string> }
+      const weekdayShortFormatter = new Intl.DateTimeFormat('en-US', { timeZone: SEOUL_TZ, weekday: 'short' });
+      const koreanCalFormatter = new Intl.DateTimeFormat('ko-KR-u-ca-korean', { timeZone: SEOUL_TZ, year: 'numeric', month: 'numeric', day: 'numeric' });
       let state = {
         year: new Date().getFullYear(),
         month: new Date().getMonth(),
@@ -332,6 +353,157 @@
       function dateKey(y, m, d) {
         m = m + 1;
         return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+      }
+      function parseDateKey(key) {
+        const y = parseInt(key.slice(0, 4), 10);
+        const m = parseInt(key.slice(5, 7), 10) - 1;
+        const d = parseInt(key.slice(8, 10), 10);
+        return { y, m, d };
+      }
+      function dateKeyAddDays(key, deltaDays) {
+        const p = parseDateKey(key);
+        const dt = new Date(Date.UTC(p.y, p.m, p.d, 12, 0, 0));
+        dt.setUTCDate(dt.getUTCDate() + deltaDays);
+        return dateKey(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+      }
+      function seoulWeekdayIndexFromKey(key) {
+        const p = parseDateKey(key);
+        const dt = new Date(Date.UTC(p.y, p.m, p.d, 12, 0, 0));
+        const wd = weekdayShortFormatter.format(dt);
+        switch (wd) {
+          case 'Sun': return 0;
+          case 'Mon': return 1;
+          case 'Tue': return 2;
+          case 'Wed': return 3;
+          case 'Thu': return 4;
+          case 'Fri': return 5;
+          case 'Sat': return 6;
+          default: return dt.getUTCDay();
+        }
+      }
+      function isWeekendInSeoul(key) {
+        const wd = seoulWeekdayIndexFromKey(key);
+        return wd === 0 || wd === 6;
+      }
+      function koreanLunarMonthDayFromKey(key) {
+        const p = parseDateKey(key);
+        const dt = new Date(Date.UTC(p.y, p.m, p.d, 12, 0, 0));
+        const parts = koreanCalFormatter.formatToParts(dt);
+        const monthPart = parts.find(function(x) { return x.type === 'month'; });
+        const dayPart = parts.find(function(x) { return x.type === 'day'; });
+        const monthRaw = monthPart ? monthPart.value : '';
+        const dayRaw = dayPart ? dayPart.value : '';
+        const month = parseInt(monthRaw.replace(/\D/g, ''), 10);
+        const day = parseInt(dayRaw.replace(/\D/g, ''), 10);
+        const isLeapMonth = /윤/.test(monthRaw) || /leap/i.test(monthRaw);
+        return { month: month, day: day, isLeapMonth: isLeapMonth };
+      }
+      function nextWeekdayNotHoliday(set, startKey) {
+        let k = startKey;
+        while (true) {
+          k = dateKeyAddDays(k, 1);
+          const wd = seoulWeekdayIndexFromKey(k);
+          const isWeekday = wd >= 1 && wd <= 5;
+          if (isWeekday && !set.has(k)) return k;
+        }
+      }
+      function addSubstituteIfWeekend(info, key, baseName) {
+        if (!info.set.has(key)) return;
+        if (!isWeekendInSeoul(key)) return;
+        const subKey = nextWeekdayNotHoliday(info.set, key);
+        const base = baseName || info.names[key] || '';
+        info.set.add(subKey);
+        info.names[subKey] = base ? (base + ' 대체공휴일') : '대체공휴일';
+      }
+      function addSubstituteAfterRangeIfWeekend(info, keysInOrder, baseName) {
+        const anyWeekend = keysInOrder.some(function(k) { return isWeekendInSeoul(k); });
+        if (!anyWeekend) return;
+        const last = keysInOrder[keysInOrder.length - 1];
+        const subKey = nextWeekdayNotHoliday(info.set, last);
+        const base = baseName || (info.names[keysInOrder[0]] || '');
+        info.set.add(subKey);
+        info.names[subKey] = base ? (base + ' 대체공휴일') : '대체공휴일';
+      }
+      function getHolidaySetForYear(year) {
+        if (holidayCache[year]) return holidayCache[year];
+        const info = { set: new Set(), names: Object.create(null) };
+        function addHoliday(key, name) {
+          info.set.add(key);
+          if (name) info.names[key] = name;
+        }
+
+        // 양력 고정 공휴일(법정공휴일)
+        addHoliday(year + '-01-01', '신정');
+        addHoliday(year + '-03-01', '삼일절');
+        addHoliday(year + '-05-05', '어린이날');
+        addHoliday(year + '-06-06', '현충일');
+        addHoliday(year + '-08-15', '광복절');
+        addHoliday(year + '-10-03', '개천절');
+        addHoliday(year + '-10-09', '한글날');
+        addHoliday(year + '-12-25', '성탄절');
+
+        // 음력 기반 공휴일(설/추석/부처님오신날)
+        let seollalKey = null;
+        let chuseokKey = null;
+        let buddhaKey = null;
+        const start = new Date(Date.UTC(year, 0, 1, 12, 0, 0));
+        const end = new Date(Date.UTC(year, 11, 31, 12, 0, 0));
+        for (let dt = new Date(start); dt <= end; dt.setUTCDate(dt.getUTCDate() + 1)) {
+          const key = dateKey(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+          const lunar = koreanLunarMonthDayFromKey(key);
+          if (!lunar.isLeapMonth && lunar.month === 1 && lunar.day === 1) seollalKey = key;
+          if (!lunar.isLeapMonth && lunar.month === 8 && lunar.day === 15) chuseokKey = key;
+          if (!lunar.isLeapMonth && lunar.month === 4 && lunar.day === 8) buddhaKey = key;
+        }
+
+        if (seollalKey) {
+          const eve = dateKeyAddDays(seollalKey, -1);
+          const next = dateKeyAddDays(seollalKey, 1);
+          addHoliday(eve, '설 연휴');
+          addHoliday(seollalKey, '설날');
+          addHoliday(next, '설 연휴');
+          addSubstituteAfterRangeIfWeekend(info, [eve, seollalKey, next], '설날');
+        }
+        if (chuseokKey) {
+          const eve = dateKeyAddDays(chuseokKey, -1);
+          const next = dateKeyAddDays(chuseokKey, 1);
+          addHoliday(eve, '추석 연휴');
+          addHoliday(chuseokKey, '추석');
+          addHoliday(next, '추석 연휴');
+          addSubstituteAfterRangeIfWeekend(info, [eve, chuseokKey, next], '추석');
+        }
+        if (buddhaKey) {
+          addHoliday(buddhaKey, '부처님오신날');
+          addSubstituteIfWeekend(info, buddhaKey, '부처님오신날');
+        }
+
+        // 대체공휴일(간단 규칙): 토/일이면 다음 평일 (신정/현충일 등은 제외)
+        addSubstituteIfWeekend(info, year + '-03-01', '삼일절');
+        addSubstituteIfWeekend(info, year + '-08-15', '광복절');
+        addSubstituteIfWeekend(info, year + '-10-03', '개천절');
+        addSubstituteIfWeekend(info, year + '-10-09', '한글날');
+        addSubstituteIfWeekend(info, year + '-12-25', '성탄절');
+
+        // 어린이날: 주말이거나 다른 공휴일과 겹치면 다음 평일
+        const childrenKey = year + '-05-05';
+        if (!info.set.has(childrenKey)) addHoliday(childrenKey, '어린이날');
+        if (isWeekendInSeoul(childrenKey) || (buddhaKey && buddhaKey === childrenKey)) {
+          const subKey = nextWeekdayNotHoliday(info.set, childrenKey);
+          addHoliday(subKey, '어린이날 대체공휴일');
+        }
+
+        holidayCache[year] = info;
+        return info;
+      }
+      function isHolidayKey(key) {
+        const y = parseInt(key.slice(0, 4), 10);
+        const info = getHolidaySetForYear(y);
+        return info.set.has(key);
+      }
+      function getHolidayName(key) {
+        const y = parseInt(key.slice(0, 4), 10);
+        const info = getHolidaySetForYear(y);
+        return info.names[key] || '';
       }
       function getTasksFor(key) {
         if (!state.tasks[key]) state.tasks[key] = [];
@@ -356,14 +528,28 @@
             ? dateKey(state.year - 1, 11, d)
             : dateKey(state.year, state.month - 1, d);
           const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
-          html += '<div class="day-cell other-month" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
+          const isSunday = seoulWeekdayIndexFromKey(key) === 0;
+          const isHoliday = isHolidayKey(key);
+          const holidayName = isHoliday ? getHolidayName(key) : '';
+          html += '<div class="day-cell other-month' + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
+            d +
+            (holidayName ? '<div class="holiday-label">' + holidayName + '</div>' : '') +
+            (hasTask ? '<span class="dot"></span>' : '') +
+            '</div>';
         }
         for (let d = 1; d <= totalDays; d++) {
           const key = dateKey(state.year, state.month, d);
           const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
           const isToday = key === todayKey;
           const isSelected = state.selected === key;
-          html += '<div class="day-cell' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '') + '" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
+          const isSunday = seoulWeekdayIndexFromKey(key) === 0;
+          const isHoliday = isHolidayKey(key);
+          const holidayName = isHoliday ? getHolidayName(key) : '';
+          html += '<div class="day-cell' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '') + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
+            d +
+            (holidayName ? '<div class="holiday-label">' + holidayName + '</div>' : '') +
+            (hasTask ? '<span class="dot"></span>' : '') +
+            '</div>';
         }
         const rest = 42 - (startPad + totalDays);
         for (let i = 0; i < rest; i++) {
@@ -372,7 +558,14 @@
             ? dateKey(state.year + 1, 0, d)
             : dateKey(state.year, state.month + 1, d);
           const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
-          html += '<div class="day-cell other-month" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
+          const isSunday = seoulWeekdayIndexFromKey(key) === 0;
+          const isHoliday = isHolidayKey(key);
+          const holidayName = isHoliday ? getHolidayName(key) : '';
+          html += '<div class="day-cell other-month' + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
+            d +
+            (holidayName ? '<div class="holiday-label">' + holidayName + '</div>' : '') +
+            (hasTask ? '<span class="dot"></span>' : '') +
+            '</div>';
         }
         document.getElementById('days').innerHTML = html;
 
