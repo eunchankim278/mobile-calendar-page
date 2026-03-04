@@ -1,238 +1,466 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나만의 캘린더</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .calendar-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            width: 95%;
-            max-width: 700px; /* Slightly wider for larger screens, still responsive */
-            padding: 30px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        h1 {
-            color: #007bff; /* Blue heading */
-            margin-bottom: 20px;
-            font-size: 2.2em;
-        }
-        .month-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        .month-header button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: background-color 0.2s ease;
-        }
-        .month-header button:hover {
-            background-color: #0056b3;
-        }
-        .month-header h2 {
-            margin: 0;
-            font-size: 1.8em;
-            color: #333;
-        }
-        .days-of-week {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: #555;
-        }
-        .days-of-week div {
-            padding: 10px 0;
-            text-align: center;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px; /* Space between days */
-        }
-        .calendar-grid div {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 8px; /* Reduced padding slightly for denser feel */
-            border-radius: 5px;
-            text-align: center; /* Center align text within the cell */
-            font-size: 1.1em;
-            min-height: 50px; /* Ensure consistent height */
-            display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            transition: background-color 0.2s ease;
-        }
-        .calendar-grid div:hover {
-            background-color: #e9ecef;
-            cursor: pointer;
-        }
-        .empty-day {
-            background-color: #ffffff;
-            border: none; /* No border for empty cells */
-        }
-        .days-of-week div { /* Re-apply text-align:center for headers */
-            text-align: center;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1b26">
+  <title>달력 할일</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1b26;
+      --surface: #24283b;
+      --surface2: #414868;
+      --text: #c0caf5;
+      --text-dim: #565f89;
+      --accent: #7aa2f7;
+      --accent-soft: rgba(122, 162, 247, 0.2);
+      --green: #9ece6a;
+      --red: #f7768e;
+      --yellow: #e0af68;
+      --safe-top: env(safe-area-inset-top, 0);
+      --safe-bottom: env(safe-area-inset-bottom, 0);
+      --touch: 44px;
+    }
 
-        /* Style for Sundays (Red) */
-        .sunday {
-            color: red;
-            font-weight: bold;
-        }
-        /* Style for Saturdays (Blue) */
-        .saturday {
-            color: blue;
-            font-weight: bold;
-        }
-        /* Style for specific holiday */
-        .holiday {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* 헤더 */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 12px 16px 16px;
+      border-bottom: 1px solid var(--surface2);
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .nav-month {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-btn {
+      width: var(--touch);
+      height: var(--touch);
+      border: none;
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:active { background: var(--surface2); }
+    .current-month {
+      font-size: 1rem;
+      font-weight: 600;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    /* 달력 */
+    .calendar-wrap {
+      padding: 12px 12px 16px;
+    }
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .weekdays span { padding: 4px 0; }
+    .weekdays span:first-child { color: var(--red); }
+    .weekdays span:last-child { color: var(--accent); }
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day-cell {
+      aspect-ratio: 1;
+      max-width: 52px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .day-cell.other-month { color: var(--text-dim); opacity: 0.6; }
+    .day-cell.today {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .day-cell.selected {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .day-cell:active { opacity: 0.8; }
+    .day-cell .dot {
+      position: absolute;
+      bottom: 4px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .day-cell.selected .dot { background: var(--bg); }
+
+    /* 선택한 날짜 + 할일 목록 */
+    .day-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      margin: 0 12px;
+      padding: 20px 16px calc(16px + var(--safe-bottom));
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+    }
+    .day-panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--surface2);
+    }
+    .day-panel .date-str { color: var(--accent); font-weight: 700; }
+    .task-list {
+      list-style: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-height: 80px;
+    }
+    .task-list:empty::after {
+      content: '이 날에 할 일을 추가해 보세요.';
+      display: block;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 24px 16px;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .task-item.done .task-text {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+    .task-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--surface2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .task-item.done .task-check {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--bg);
+    }
+    .task-item.done .task-check::after { content: '✓'; font-size: 12px; font-weight: 700; }
+    .task-text { flex: 1; word-break: break-word; }
+    .task-delete {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .task-delete:active { background: rgba(247,118,142,0.2); color: var(--red); }
+
+    /* 할일 추가 */
+    .add-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--surface2);
+    }
+    .add-form input {
+      flex: 1;
+      min-width: 0;
+      height: var(--touch);
+      padding: 0 16px;
+      border: 1px solid var(--surface2);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    .add-form input::placeholder { color: var(--text-dim); }
+    .add-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+    .add-form button {
+      height: var(--touch);
+      padding: 0 20px;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .add-form button:active { opacity: 0.9; }
+
+    .no-date-hint {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      padding: 32px 24px;
+    }
+  </style>
 </head>
 <body>
-    <div class="calendar-container">
-        <h1>나만의 캘린더</h1>
-        <div class="month-header">
-            <button id="prevMonthBtn">&#10094;</button> <!-- Previous month arrow -->
-            <h2 id="monthYearDisplay"></h2> <!-- Month and Year will be updated by JS -->
-            <button id="nextMonthBtn">&#10095;</button> <!-- Next month arrow -->
-        </div>
-        <div class="days-of-week">
-            <div>일</div>
-            <div>월</div>
-            <div>화</div>
-            <div>수</div>
-            <div>목</div>
-            <div>금</div>
-            <div>토</div>
-        </div>
-        <div id="calendar-grid" class="calendar-grid">
-            <!-- Calendar days will be dynamically generated by JavaScript -->
-        </div>
+  <header>
+    <div class="header-row">
+      <h1>📅 달력 할일</h1>
+      <div class="nav-month">
+        <button type="button" class="nav-btn" id="prevMonth" aria-label="이전 달">‹</button>
+        <span class="current-month" id="currentMonth"></span>
+        <button type="button" class="nav-btn" id="nextMonth" aria-label="다음 달">›</button>
+      </div>
     </div>
+  </header>
 
-    <script>
-        let currentYear = 2026;
-        let currentMonth = 3; // March (1-indexed)
-        const monthNames = ["", "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+  <div class="calendar-wrap">
+    <div class="weekdays">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+    <div class="days" id="days"></div>
+  </div>
 
-        function renderCalendar() {
-            const calendarGrid = document.getElementById('calendar-grid');
-            const monthYearDisplay = document.getElementById('monthYearDisplay');
-            
-            // Clear previous calendar days
-            calendarGrid.innerHTML = '';
+  <div class="day-panel" id="dayPanel">
+    <p class="no-date-hint" id="noDateHint">날짜를 눌러 할 일을 추가하세요.</p>
+    <div id="dayContent" style="display: none;">
+      <h2>할 일 · <span class="date-str" id="selectedDateStr"></span></h2>
+      <ul class="task-list" id="taskList"></ul>
+      <form class="add-form" id="addForm">
+        <input type="text" id="taskInput" placeholder="할 일 입력" maxlength="200" autocomplete="off">
+        <button type="submit">추가</button>
+      </form>
+    </div>
+  </div>
 
-            // Update month and year display
-            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+  <script>
+    (function() {
+      const STORAGE_KEY = 'calendar-tasks';
+      let state = {
+        year: new Date().getFullYear(),
+        month: new Date().getMonth(),
+        selected: null,
+        tasks: loadTasks()
+      };
 
-            // Calculate the first day of the week for the current month
-            const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1);
-            const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sunday
+      function loadTasks() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) { return {}; }
+      }
+      function saveTasks() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tasks));
+        } catch (e) {}
+      }
 
-            // Get the number of days in the current month
-            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+      function dateKey(y, m, d) {
+        m = m + 1;
+        return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+      }
+      function getTasksFor(key) {
+        if (!state.tasks[key]) state.tasks[key] = [];
+        return state.tasks[key];
+      }
 
-            // Add empty days to fill the grid before the first day of the month
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyDayDiv = document.createElement('div');
-                emptyDayDiv.classList.add('empty-day');
-                calendarGrid.appendChild(emptyDayDiv);
-            }
+      function renderMonth() {
+        document.getElementById('currentMonth').textContent =
+          state.year + '년 ' + (state.month + 1) + '월';
+        const first = new Date(state.year, state.month, 1);
+        const last = new Date(state.year, state.month + 1, 0);
+        const startPad = first.getDay();
+        const totalDays = last.getDate();
+        const prevLast = new Date(state.year, state.month, 0).getDate();
+        const today = new Date();
+        const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
-            // Add the days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayDiv = document.createElement('div');
-                dayDiv.textContent = day;
-                
-                const currentDate = new Date(currentYear, currentMonth - 1, day);
-                const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
-
-                // Apply classes based on day of the week
-                if (dayOfWeek === 0) { // Sunday
-                    dayDiv.classList.add('sunday');
-                } else if (dayOfWeek === 6) { // Saturday
-                    dayDiv.classList.add('saturday');
-                }
-                
-                // Highlight the holiday (March 2nd, 2026)
-                if (currentYear === 2026 && currentMonth === 3 && day === 2) {
-                    dayDiv.classList.add('holiday');
-                }
-
-                calendarGrid.appendChild(dayDiv);
-            }
-
-            // Add empty days at the end to fill the grid (up to 7 columns)
-            const totalCellsFilled = startingDayOfWeek + daysInMonth;
-            const remainingCells = (7 - (totalCellsFilled % 7)) % 7;
-            
-            for (let i = 0; i < remainingCells; i++) {
-                const emptyDayDiv = document.createElement('div');
-                emptyDayDiv.classList.add('empty-day');
-                calendarGrid.appendChild(emptyDayDiv);
-            }
+        let html = '';
+        for (let i = 0; i < startPad; i++) {
+          const d = prevLast - startPad + i + 1;
+          const key = state.month === 0
+            ? dateKey(state.year - 1, 11, d)
+            : dateKey(state.year, state.month - 1, d);
+          const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
+          html += '<div class="day-cell other-month" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
         }
-
-        // Navigation functions
-        function changeMonth(offset) {
-            let newMonth = currentMonth + offset;
-            let newYear = currentYear;
-
-            if (newMonth < 1) { // If month goes below 1 (January)
-                newMonth = 12; // Reset to December
-                newYear--;     // Decrement year
-            } else if (newMonth > 12) { // If month goes above 12 (December)
-                newMonth = 1;  // Reset to January
-                newYear++;     // Increment year
-            }
-            currentMonth = newMonth;
-            currentYear = newYear;
-            renderCalendar();
+        for (let d = 1; d <= totalDays; d++) {
+          const key = dateKey(state.year, state.month, d);
+          const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
+          const isToday = key === todayKey;
+          const isSelected = state.selected === key;
+          html += '<div class="day-cell' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '') + '" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
         }
-
-        function prevMonth() {
-            changeMonth(-1);
+        const rest = 42 - (startPad + totalDays);
+        for (let i = 0; i < rest; i++) {
+          const d = i + 1;
+          const key = state.month === 11
+            ? dateKey(state.year + 1, 0, d)
+            : dateKey(state.year, state.month + 1, d);
+          const hasTask = (state.tasks[key] || []).some(function(t) { return !t.done; });
+          html += '<div class="day-cell other-month" data-date="' + key + '">' + d + (hasTask ? '<span class="dot"></span>' : '') + '</div>';
         }
+        document.getElementById('days').innerHTML = html;
 
-        function nextMonth() {
-            changeMonth(1);
+        document.getElementById('days').querySelectorAll('.day-cell').forEach(function(el) {
+          el.addEventListener('click', function() {
+            state.selected = el.dataset.date;
+            saveTasks();
+            renderMonth();
+            renderDayPanel();
+          });
+        });
+      }
+
+      function renderDayPanel() {
+        const hint = document.getElementById('noDateHint');
+        const content = document.getElementById('dayContent');
+        const list = document.getElementById('taskList');
+        const input = document.getElementById('taskInput');
+        const form = document.getElementById('addForm');
+
+        if (!state.selected) {
+          hint.style.display = 'block';
+          content.style.display = 'none';
+          return;
         }
+        hint.style.display = 'none';
+        content.style.display = 'block';
+        document.getElementById('selectedDateStr').textContent = state.selected;
 
-        // Attach event listeners to buttons
-        document.getElementById('prevMonthBtn').addEventListener('click', prevMonth);
-        document.getElementById('nextMonthBtn').addEventListener('click', nextMonth);
+        const tasks = getTasksFor(state.selected);
+        list.innerHTML = tasks.map(function(t, i) {
+          return '<li class="task-item' + (t.done ? ' done' : '') + '" data-i="' + i + '">' +
+            '<span class="task-check" role="button" tabindex="0" aria-label="완료 토글"></span>' +
+            '<span class="task-text">' + escapeHtml(t.text) + '</span>' +
+            '<button type="button" class="task-delete" aria-label="삭제">×</button></li>';
+        }).join('');
 
-        // Initial rendering of the calendar on page load
-        window.onload = renderCalendar;
-    </script>
+        list.querySelectorAll('.task-item').forEach(function(item) {
+          const i = parseInt(item.dataset.i, 10);
+          item.querySelector('.task-check').addEventListener('click', function() {
+            state.tasks[state.selected][i].done = !state.tasks[state.selected][i].done;
+            saveTasks();
+            renderMonth();
+            renderDayPanel();
+          });
+          item.querySelector('.task-delete').addEventListener('click', function() {
+            state.tasks[state.selected].splice(i, 1);
+            saveTasks();
+            renderMonth();
+            renderDayPanel();
+          });
+        });
+
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          const text = (input.value || '').trim();
+          if (!text) return;
+          getTasksFor(state.selected).push({ text: text, done: false });
+          saveTasks();
+          input.value = '';
+          renderMonth();
+          renderDayPanel();
+          input.focus();
+        };
+      }
+
+      function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      document.getElementById('prevMonth').addEventListener('click', function() {
+        if (state.month === 0) { state.year--; state.month = 11; }
+        else state.month--;
+        renderMonth();
+      });
+      document.getElementById('nextMonth').addEventListener('click', function() {
+        if (state.month === 11) { state.year++; state.month = 0; }
+        else state.month++;
+        renderMonth();
+      });
+
+      var today = new Date();
+      state.selected = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+      renderMonth();
+      renderDayPanel();
+    })();
+  </script>
 </body>
 </html>
