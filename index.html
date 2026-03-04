@@ -110,15 +110,20 @@
             color: blue;
             font-weight: bold;
         }
+        /* Style for specific holiday */
+        .holiday {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="calendar-container">
         <h1>나만의 캘린더</h1>
         <div class="month-header">
-            <button onclick="prevMonth()">&#10094;</button> <!-- Previous month arrow -->
-            <h2>2026년 3월</h2> <!-- Placeholder for month/year -->
-            <button onclick="nextMonth()">&#10095;</button> <!-- Next month arrow -->
+            <button id="prevMonthBtn">&#10094;</button> <!-- Previous month arrow -->
+            <h2 id="monthYearDisplay"></h2> <!-- Month and Year will be updated by JS -->
+            <button id="nextMonthBtn">&#10095;</button> <!-- Next month arrow -->
         </div>
         <div class="days-of-week">
             <div>일</div>
@@ -135,7 +140,7 @@
             <!-- Days 1-31. March 31st is a Tuesday. Needs 4 empty cells at the end. -->
             <div class="spacer" style="grid-column: start;"></div> <!-- Spacer for alignment -->
             <div>1</div>
-            <div>2</div>
+            <div class="holiday">2</div> <!-- March 2nd -->
             <div>3</div>
             <div>4</div>
             <div>5</div>
@@ -177,14 +182,101 @@
     </div>
 
     <script>
-        // Basic JS for month navigation - these functions would need to dynamically update the calendar
-        // For now, they just show an alert.
+        let currentYear = 2026;
+        let currentMonth = 3; // March (1-indexed)
+        const monthNames = ["", "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const monthYearDisplay = document.getElementById('monthYearDisplay');
+            
+            // Clear previous calendar days
+            calendarGrid.innerHTML = '';
+
+            // Update month and year display
+            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            // Calculate the first day of the week for the current month
+            const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1);
+            const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sunday
+
+            // Get the number of days in the current month
+            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            // Add empty days to fill the grid before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDayDiv = document.createElement('div');
+                emptyDayDiv.classList.add('empty-day');
+                calendarGrid.appendChild(emptyDayDiv);
+            }
+
+            // Add the days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                
+                const currentDate = new Date(currentYear, currentMonth - 1, day);
+                const dayOfWeek = currentDate.getDay(); // 0 for Sunday, 6 for Saturday
+
+                // Apply styles based on day of the week
+                if (dayOfWeek === 0) { // Sunday
+                    dayDiv.style.color = 'red';
+                    dayDiv.style.fontWeight = 'bold';
+                } else if (dayOfWeek === 6) { // Saturday
+                    dayDiv.style.color = 'blue';
+                    dayDiv.style.fontWeight = 'bold';
+                }
+                
+                // Highlight the holiday (March 2nd)
+                if (currentYear === 2026 && currentMonth === 3 && day === 2) {
+                    dayDiv.classList.add('holiday');
+                }
+
+                calendarGrid.appendChild(dayDiv);
+            }
+
+            // Add empty days at the end to fill the grid (up to 7 columns)
+            const totalCellsFilled = startingDayOfWeek + daysInMonth;
+            const remainingCells = (7 - (totalCellsFilled % 7)) % 7;
+            
+            for (let i = 0; i < remainingCells; i++) {
+                const emptyDayDiv = document.createElement('div');
+                emptyDayDiv.classList.add('empty-day');
+                calendarGrid.appendChild(emptyDayDiv);
+            }
+        }
+
+        // Navigation functions
+        function changeMonth(offset) {
+            let newMonth = currentMonth + offset;
+            let newYear = currentYear;
+
+            if (newMonth < 1) { // If month goes below 1 (January)
+                newMonth = 12; // Reset to December
+                newYear--;     // Decrement year
+            } else if (newMonth > 12) { // If month goes above 12 (December)
+                newMonth = 1;  // Reset to January
+                newYear++;     // Increment year
+            }
+            currentMonth = newMonth;
+            currentYear = newYear;
+            renderCalendar();
+        }
+
         function prevMonth() {
-            alert("이전 달 보기 기능은 아직 구현되지 않았습니다.");
+            changeMonth(-1);
         }
+
         function nextMonth() {
-            alert("다음 달 보기 기능은 아직 구현되지 않았습니다.");
+            changeMonth(1);
         }
+
+        // Attach event listeners to buttons
+        document.getElementById('prevMonthBtn').addEventListener('click', prevMonth);
+        document.getElementById('nextMonthBtn').addEventListener('click', nextMonth);
+
+        // Initial rendering of the calendar on page load
+        window.onload = renderCalendar;
     </script>
 </body>
 </html>
