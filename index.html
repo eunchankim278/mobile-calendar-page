@@ -77,23 +77,28 @@
         }
         .calendar-grid div {
             background-color: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 15px 0;
+            border: 1px solid #ddd;
+            padding: 8px; /* Reduced padding slightly for denser feel */
             border-radius: 5px;
-            text-align: center;
+            text-align: center; /* Center align text within the cell */
             font-size: 1.1em;
             min-height: 50px; /* Ensure consistent height */
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
             transition: background-color 0.2s ease;
         }
         .calendar-grid div:hover {
             background-color: #e9ecef;
             cursor: pointer;
         }
-        /* Add styling for current day, if we were to implement dynamic JS */
-        /* .today { background-color: #007bff; color: white; font-weight: bold; } */
+        .empty-day {
+            background-color: #ffffff;
+            border: none; /* No border for empty cells */
+        }
+        .days-of-week div { /* Re-apply text-align:center for headers */
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -114,9 +119,9 @@
             <div>토</div>
         </div>
         <div class="calendar-grid">
-            <!-- Calendar days will be dynamically generated or statically placed -->
-            <!-- Example: placeholder for days -->
-            <div class="spacer" style="grid-column: start;"></div> <!-- Placeholder for first day of week alignment -->
+            <!-- Static representation of March 2026 calendar (starts on Sunday) -->
+            <!-- March 1st, 2026 is a Sunday -->
+            <!-- Days 1-31. March 31st is a Tuesday. Needs 4 empty cells at the end. -->
             <div>1</div>
             <div>2</div>
             <div>3</div>
@@ -124,6 +129,7 @@
             <div>5</div>
             <div>6</div>
             <div>7</div>
+
             <div>8</div>
             <div>9</div>
             <div>10</div>
@@ -131,6 +137,7 @@
             <div>12</div>
             <div>13</div>
             <div>14</div>
+
             <div>15</div>
             <div>16</div>
             <div>17</div>
@@ -138,6 +145,7 @@
             <div>19</div>
             <div>20</div>
             <div>21</div>
+
             <div>22</div>
             <div>23</div>
             <div>24</div>
@@ -145,9 +153,14 @@
             <div>26</div>
             <div>27</div>
             <div>28</div>
+
             <div>29</div>
             <div>30</div>
             <div>31</div>
+            <div class="empty-day"></div>
+            <div class="empty-day"></div>
+            <div class="empty-day"></div>
+            <div class="empty-day"></div>
         </div>
     </div>
 
