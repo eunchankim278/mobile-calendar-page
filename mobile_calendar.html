@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 캘린더</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .calendar-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 700px; /* Slightly wider for larger screens, still responsive */
+            padding: 30px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff; /* Blue heading */
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .month-header button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.2s ease;
+        }
+        .month-header button:hover {
+            background-color: #0056b3;
+        }
+        .month-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #333;
+        }
+        .days-of-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+        .days-of-week div {
+            padding: 10px 0;
+            text-align: center;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px; /* Space between days */
+        }
+        .calendar-grid div {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1em;
+            min-height: 50px; /* Ensure consistent height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        .calendar-grid div:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+        /* Add styling for current day, if we were to implement dynamic JS */
+        /* .today { background-color: #007bff; color: white; font-weight: bold; } */
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <h1>나만의 캘린더</h1>
+        <div class="month-header">
+            <button onclick="prevMonth()">&#10094;</button> <!-- Previous month arrow -->
+            <h2>2026년 3월</h2> <!-- Placeholder for month/year -->
+            <button onclick="nextMonth()">&#10095;</button> <!-- Next month arrow -->
+        </div>
+        <div class="days-of-week">
+            <div>일</div>
+            <div>월</div>
+            <div>화</div>
+            <div>수</div>
+            <div>목</div>
+            <div>금</div>
+            <div>토</div>
+        </div>
+        <div class="calendar-grid">
+            <!-- Calendar days will be dynamically generated or statically placed -->
+            <!-- Example: placeholder for days -->
+            <div class="spacer" style="grid-column: start;"></div> <!-- Placeholder for first day of week alignment -->
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+            <div>4</div>
+            <div>5</div>
+            <div>6</div>
+            <div>7</div>
+            <div>8</div>
+            <div>9</div>
+            <div>10</div>
+            <div>11</div>
+            <div>12</div>
+            <div>13</div>
+            <div>14</div>
+            <div>15</div>
+            <div>16</div>
+            <div>17</div>
+            <div>18</div>
+            <div>19</div>
+            <div>20</div>
+            <div>21</div>
+            <div>22</div>
+            <div>23</div>
+            <div>24</div>
+            <div>25</div>
+            <div>26</div>
+            <div>27</div>
+            <div>28</div>
+            <div>29</div>
+            <div>30</div>
+            <div>31</div>
+        </div>
+    </div>
+
+    <script>
+        // Basic JS for month navigation - these functions would need to dynamically update the calendar
+        // For now, they just show an alert.
+        function prevMonth() {
+            alert("이전 달 보기 기능은 아직 구현되지 않았습니다.");
+        }
+        function nextMonth() {
+            alert("다음 달 보기 기능은 아직 구현되지 않았습니다.");
+        }
+    </script>
+</body>
+</html>
