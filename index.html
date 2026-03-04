@@ -136,17 +136,26 @@
       color: var(--bg);
     }
     .day-cell:active { opacity: 0.8; }
+    .day-cell .day-num {
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      line-height: 1;
+    }
     .day-cell .dot {
       position: absolute;
-      bottom: 6px;
       left: 50%;
-      transform: translateX(-50%);
-      width: 7px;
-      height: 7px;
+      top: 50%;
+      transform: translate(-50%, -55%);
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: var(--green);
+      opacity: 0.35;
+      z-index: 1;
+      pointer-events: none;
     }
-    .day-cell.selected .dot { background: var(--bg); }
+    .day-cell.selected .dot { opacity: 0.28; }
 
     /* 선택한 날짜 + 할일 목록 */
     .day-panel {
@@ -533,7 +542,7 @@
           const isSunday = seoulWeekdayIndexFromKey(key) === 0;
           const isHoliday = isHolidayKey(key);
           html += '<div class="day-cell other-month' + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
-            d +
+            '<span class="day-num">' + d + '</span>' +
             (hasTask ? '<span class="dot"></span>' : '') +
             '</div>';
         }
@@ -545,7 +554,7 @@
           const isSunday = seoulWeekdayIndexFromKey(key) === 0;
           const isHoliday = isHolidayKey(key);
           html += '<div class="day-cell' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '') + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
-            d +
+            '<span class="day-num">' + d + '</span>' +
             (hasTask ? '<span class="dot"></span>' : '') +
             '</div>';
         }
@@ -559,7 +568,7 @@
           const isSunday = seoulWeekdayIndexFromKey(key) === 0;
           const isHoliday = isHolidayKey(key);
           html += '<div class="day-cell other-month' + (isSunday ? ' sunday' : '') + (isHoliday ? ' holiday' : '') + '" data-date="' + key + '">' +
-            d +
+            '<span class="day-num">' + d + '</span>' +
             (hasTask ? '<span class="dot"></span>' : '') +
             '</div>';
         }
